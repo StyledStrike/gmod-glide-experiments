@@ -1,0 +1,5 @@
+"VertexlitGeneric"
+{
+	"$basetexture" "models/glide_experiments/caddy_steeringwheel"
+	"$allowdiffusemodulation" "false"
+}

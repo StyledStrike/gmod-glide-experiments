@@ -1,0 +1,1 @@
+{"kv":{"volume":0.5},"layers":{"caddy_throttle":{"path":"glide_experiments/caddy_throttle.wav","controllers":[["throttle",0,1,"volume",0.7,1],["rpmFraction",0,0.2,"volume",0,1],["rpmFraction",0,1,"pitch",0.45,1.05]],"redline":false}}}
