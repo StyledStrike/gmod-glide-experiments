@@ -1,0 +1,5 @@
+"VertexlitGeneric"
+{
+	"$basetexture" "models/glide_experiments/sportsbike_hd_detail"
+	"$allowdiffusemodulation" "false"
+}
