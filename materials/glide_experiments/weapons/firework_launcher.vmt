@@ -1,0 +1,11 @@
+"VertexlitGeneric"
+{
+	"$baseTexture" "glide_experiments/weapons/firework_launcher"
+	"$bumpmap" "glide_experiments/weapons/firework_launcher_n"
+	"$nodecal" "1"
+
+	"$phong" "1"
+	"$phongboost" "1.0"
+	"$phongfresnelranges" "[0 0.5 1]"
+	"$phongexponenttexture"	"glide_experiments/weapons/firework_launcher_spec"
+}

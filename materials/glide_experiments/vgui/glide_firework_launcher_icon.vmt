@@ -1,0 +1,5 @@
+"UnlitGeneric"
+{
+    "$basetexture" "glide_experiments/vgui/glide_firework_launcher_icon"
+    "$translucent" "1"
+}
