@@ -1,0 +1,13 @@
+{
+	"title": "Glide // Styled's Experiments",
+	"type": "vehicle",
+	"tags":	["fun"],
+	"ignore": [
+		".git*",
+		"*.md",
+        "*.yml",
+        ".editorconfig",
+		"glualint.json",
+		"LICENSE"
+	]
+}
