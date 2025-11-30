@@ -59,12 +59,16 @@ function ENT:Explode( normal )
 
     normal = normal or self:GetForward()
 
-    local eff = EffectData()
-    eff:SetOrigin( self:GetPos() )
-    eff:SetNormal( normal )
-    eff:SetScale( 1.0 )
-    eff:SetColor( ( self:GetTrailHue() / 360 ) * 255 )
-    util.Effect( "glide_firework_explosion", eff )
+    local IsUnderWater = Glide.IsUnderWater
+
+    if not IsUnderWater( self:GetPos() ) then
+        local eff = EffectData()
+        eff:SetOrigin( self:GetPos() )
+        eff:SetNormal( normal )
+        eff:SetScale( 1.0 )
+        eff:SetColor( ( self:GetTrailHue() / 360 ) * 255 )
+        util.Effect( "glide_firework_explosion", eff )
+    end
 
     Glide.CreateExplosion( self, self.attacker, self:GetPos(), self.radius, self.damage, normal, Glide.EXPLOSION_TYPE.FIREWORK )
 

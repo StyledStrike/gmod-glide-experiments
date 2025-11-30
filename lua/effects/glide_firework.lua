@@ -59,26 +59,6 @@ function EFFECT:Rocket( emitter, origin, normal, scale, color )
         p:SetColor( 255, 255, 255 )
         p:SetLighting( false )
     end
-
-    --[[
-
-    for i = 1, 5 do
-        p = emitter:Add( SMOKE_MATERIAL .. RandomInt( 1, 5 ), origin + normal * i * 16 )
-
-        if p then
-            p:SetDieTime( 0.05 )
-            p:SetStartAlpha( 255 )
-            p:SetEndAlpha( 100 )
-            p:SetStartSize( RandomFloat( 4, 7 ) * scale )
-            p:SetEndSize( RandomFloat( 8, 15 ) * scale )
-
-            p:SetAirResistance( 100 )
-            p:SetVelocity( normal * RandomFloat( 300, 400 ) * scale )
-            p:SetRoll( RandomFloat( -1, 1 ) )
-            p:SetColor( 255, 150, 70 )
-            p:SetLighting( false )
-        end
-    end]]
 end
 
 function EFFECT:Smoke( emitter, origin, normal, scale, color )
