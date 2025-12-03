@@ -1,5 +1,5 @@
 if CLIENT then
-    list.Set( "GlideCategories", "RandomExperiments", {
+    list.Set( "GlideCategories", "StyledsExperiments", {
         name = "Styled's Experiments",
         icon = "glide_experiments/glide_experiments.png"
     } )

@@ -3,7 +3,7 @@ AddCSLuaFile()
 ENT.Type = "anim"
 ENT.Base = "base_glide_car"
 ENT.PrintName = "Hot Rod Super"
-ENT.GlideCategory = "RandomExperiments"
+ENT.GlideCategory = "StyledsExperiments"
 
 ENT.ChassisModel = "models/gta5/vehicles/hot_rod_super/chassis.mdl"
 ENT.MaxChassisHealth = 700
