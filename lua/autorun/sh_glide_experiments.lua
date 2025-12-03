@@ -46,6 +46,21 @@ hook.Add( "InitPostEntity", "GlideExperiments.GlideCheck", function()
             "glide_experiments/dump_valve6.wav"
         } )
 
+        Glide.AddSoundSet( "GlideExperiments.Sports.ExhaustPop", 80, 95, 105, {
+            "glide_experiments/sports_exhaust/exhaust_pop_1.wav",
+            "glide_experiments/sports_exhaust/exhaust_pop_2.wav",
+            "glide_experiments/sports_exhaust/exhaust_pop_3.wav",
+            "glide_experiments/sports_exhaust/exhaust_pop_4.wav",
+            "glide_experiments/sports_exhaust/exhaust_pop_5.wav",
+            "glide_experiments/sports_exhaust/exhaust_pop_6.wav"
+        } )
+
+        Glide.AddSoundSet( "GlideExperiments.Sports2.ExhaustPop", 80, 95, 105, {
+            "glide_experiments/sports_exhaust_2/exhaust_pop_1.wav",
+            "glide_experiments/sports_exhaust_2/exhaust_pop_2.wav",
+            "glide_experiments/sports_exhaust_2/exhaust_pop_3.wav"
+        } )
+
         return
     end
 
