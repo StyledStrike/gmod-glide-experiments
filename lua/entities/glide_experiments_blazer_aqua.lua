@@ -139,7 +139,7 @@ if CLIENT then
         self:ManipulateBoneAngles( self.handlebarsId, ang )
 
         -- Spin the wheels
-        ang[2] = steer * -30
+        ang[2] = steer * -self:GetMaxSteerAngle()
         ang[3] = self:GetWheelSpin( 1 )
         self:ManipulateBoneAngles( self.wheelLF, ang )
 
@@ -250,7 +250,7 @@ if SERVER then
             steerMultiplier = 1
         } )
 
-        self:CreateWheel( Vector( -30, 19, 2 )  )
+        self:CreateWheel( Vector( -30, 19, 2 ) )
         self:CreateWheel( Vector( -30, -19, 2 ) )
 
         self:ChangeWheelRadius( 12 )
