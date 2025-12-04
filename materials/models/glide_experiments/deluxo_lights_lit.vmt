@@ -1,0 +1,13 @@
+"VertexlitGeneric"
+{
+	"$basetexture" "models/glide_experiments/deluxo_lights"
+	"$allowdiffusemodulation" "false"
+
+	$emissiveBlendEnabled "1"
+	$emissiveBlendStrength "1"
+	$emissiveBlendTexture "vgui/white"
+	$emissiveBlendBaseTexture "models/glide_experiments/deluxo_lights"
+	$emissiveBlendFlowTexture "vgui/white"
+	$emissiveBlendTint "[ 3 3 3 ]"
+	$emissiveBlendScrollVector "[ 0 0 ]"
+}

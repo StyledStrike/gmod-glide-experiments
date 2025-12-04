@@ -1,0 +1,7 @@
+"VertexlitGeneric"
+{
+	"$basetexture" "models/glide_experiments/deluxo_badges"
+	"$bumpmap" "models/glide_experiments/deluxo_badges_n"
+	"$translucent" "1"
+	"$allowdiffusemodulation" "false"
+}

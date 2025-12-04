@@ -1,0 +1,5 @@
+"VertexlitGeneric"
+{
+	"$basetexture" "models/glide_experiments/deluxo_interior2"
+	"$allowdiffusemodulation" "false"
+}
