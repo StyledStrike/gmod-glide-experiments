@@ -174,9 +174,10 @@ if SERVER then
         self:SetSideTractionMin( 250 )
         self:SetSideTractionMaxAng( 20 )
 
-        self:SetMaxRPM( 8000 )
+        self:SetMaxRPM( 600 )
+        self:SetMaxRPM( 7500 )
         self:SetDifferentialRatio( 0.6 )
-        self:SetMinRPMTorque( 4200 )
+        self:SetMinRPMTorque( 4300 )
         self:SetMaxRPMTorque( 4600 )
 
         self:SetPowerDistribution( -0.6 )
