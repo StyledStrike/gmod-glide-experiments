@@ -20,8 +20,8 @@ DEFINE_BASECLASS( "base_glide_car" )
 function ENT:SetupDataTables()
     BaseClass.SetupDataTables( self )
 
-    self:NetworkVar( "Float", "HoverState" )
     self:NetworkVar( "Float", "HoverValue" )
+    self:NetworkVar( "Float", "FlightValue" )
 end
 
 function ENT:GetFirstPersonOffset( _, localEyePos )
@@ -100,9 +100,10 @@ if CLIENT then
         BaseClass.OnUpdateSounds( self )
 
         local sounds = self.sounds
+        local hover = self:GetHoverValue()
 
         -- Do custom sounds while in hover mode
-        if self:GetHoverState() > 1 then
+        if hover > 0.05 then
             -- TODO
         end
     end
@@ -112,7 +113,9 @@ if CLIENT then
     local ang = Angle()
 
     function ENT:OnUpdateAnimations()
-        BaseClass.OnUpdateAnimations( self )
+        self:SetPoseParameter( "vehicle_steer", self:GetSteering() )
+        self:SetPoseParameter( "extend_wings", self:GetFlightValue() )
+        self:InvalidateBoneCache()
 
         if not self.steerLF then return end
 
@@ -252,10 +255,11 @@ function ENT:CreateFeatures()
     self:RegisterHoldAction( "headlights", 1.0, { name = "ToggleHoverMode" } )
 
     -- Setup hover mode variables and states
-    self:SetHoverState( 0 )
-    self:ChangeHoverState( 0 )
-    self.flightStrength = 0
+    self.hoverState = 0
     self.contactHoverPointCount = 0
+
+    self:SetFlightValue( 0 )
+    self:SetHoverState( 0 )
 
     -- Calculate local positions on the vehicle where hover forces are applied
     local phys = self:GetPhysicsObject()
@@ -282,12 +286,10 @@ end
 function ENT:OnHoldInputAction( _action, data )
     if data.name ~= "ToggleHoverMode" then return end
 
-    local state = self:GetHoverState()
-
-    if state == 0 or state == 3 then
-        self:ChangeHoverState( 1 )
+    if self.hoverState == 0 or self.hoverState == 3 then
+        self:SetHoverState( 1 )
     else
-        self:ChangeHoverState( 3 )
+        self:SetHoverState( 3 )
     end
 end
 
@@ -296,9 +298,9 @@ local stateSounds = {
     [3] = { "glide_experiments/deluxo/transform_to_car.wav", 80, 100, 0.9 }
 }
 
-function ENT:ChangeHoverState( state )
+function ENT:SetHoverState( state )
     -- Do transition sounds
-    if state ~= self:GetHoverState() then
+    if state ~= self.hoverState then
         local soundParams = stateSounds[state]
 
         if soundParams then
@@ -308,31 +310,31 @@ function ENT:ChangeHoverState( state )
 
     if state == 1 then
         -- Transition to hover mode
-        self:SetHoverState( 1 )
+        self.hoverState = 1
         self:TurnOff()
-        self:ResetSequence( self:LookupSequence( "wings_extend" ) )
+        self:ResetSequence( "cover_retract" )
         self:ResetSequenceInfo()
 
     elseif state == 2 then
         -- Set to hover mode now
-        self:SetHoverState( 2 )
+        self.hoverState = 2
         self:SetHoverValue( 1 )
         self:ChangeSuspensionLengthMultiplier( 0 )
-        self:ResetSequence( "wings_extended" )
+        self:ResetSequence( "cover_retracted" )
 
     elseif state == 3 then
         -- Transition to ground mode
-        self:SetHoverState( 3 )
+        self.hoverState = 3
         self:TurnOn()
-        self:ResetSequence( self:LookupSequence( "wings_retract" ) )
+        self:ResetSequence( "cover_extend" )
         self:ResetSequenceInfo()
 
     else
         -- Set to ground mode now
-        self:SetHoverState( 0 )
+        self.hoverState = 0
         self:SetHoverValue( 0 )
         self:ChangeSuspensionLengthMultiplier( 1 )
-        self:ResetSequence( "wings_retracted" )
+        self:ResetSequence( "cover_extended" )
     end
 end
 
@@ -352,7 +354,7 @@ end
 
 function ENT:TurnOn()
     -- Don't allow turning on while in hover mode
-    local state = self:GetHoverState()
+    local state = self.hoverState
     if state > 0 and state ~= 3 then return end
 
     BaseClass.TurnOn( self )
@@ -363,13 +365,13 @@ local Clamp = math.Clamp
 function ENT:OnPostThink( dt, selfTbl )
     BaseClass.OnPostThink( self, dt, selfTbl )
 
-    local state = self:GetHoverState()
+    local state = self.hoverState
 
     if state == 1 then -- Is it changing to hover mode?
         local value = self:GetHoverValue() + dt / selfTbl.HoverTransitionTime
 
         if value > 1 then
-            self:ChangeHoverState( 2 )
+            self:SetHoverState( 2 )
         else
             self:SetHoverValue( value )
             self:ChangeSuspensionLengthMultiplier( 1 - value )
@@ -379,12 +381,14 @@ function ENT:OnPostThink( dt, selfTbl )
         local value = self:GetHoverValue() - dt / selfTbl.HoverTransitionTime
 
         if value < 0 then
-            self:ChangeHoverState( 0 )
+            self:SetHoverState( 0 )
         else
             self:SetHoverValue( value )
             self:ChangeSuspensionLengthMultiplier( 1 - value )
         end
     end
+
+    local flight = self:GetFlightValue()
 
     if state > 1 then
         local pitchInput = self:GetInputFloat( 1, "lean_pitch" )
@@ -392,15 +396,15 @@ function ENT:OnPostThink( dt, selfTbl )
         -- If the user is trying to fly up...
         if pitchInput < -0.1 then
             -- Increase the flight strength
-            selfTbl.flightStrength = Clamp( selfTbl.flightStrength + dt, 0, 1 )
+            self:SetFlightValue( Clamp( flight + dt, 0, 1 ) )
 
         elseif selfTbl.contactHoverPointCount > 1 then
             -- If no pitch up input, and we have at least one hover
             -- point trace hitting a surface, then reduce the flight strength
-            selfTbl.flightStrength = Clamp( selfTbl.flightStrength - dt * 2, 0, 1 )
+            self:SetFlightValue( Clamp( flight - dt * 2, 0, 1 ) )
         end
     else
-        selfTbl.flightStrength = 0
+        self:SetFlightValue( Clamp( flight - dt, 0, 1 ) )
     end
 end
 
@@ -553,6 +557,6 @@ function ENT:OnSimulatePhysics( phys, dt, outLin, outAng )
     local strength = self:GetHoverValue()
 
     if strength > 0.05 then
-        self.contactHoverPointCount = self:SimulateHovercraft( strength, self.flightStrength, phys, dt, outLin, outAng )
+        self.contactHoverPointCount = self:SimulateHovercraft( strength, self:GetFlightValue(), phys, dt, outLin, outAng )
     end
 end
