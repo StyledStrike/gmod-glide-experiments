@@ -96,6 +96,11 @@ if CLIENT then
         self.suspRR = self:LookupBone( "suspension_rr" )
     end
 
+    local FrameTime = FrameTime
+    local Clamp = math.Clamp
+    local ExpDecay = Glide.ExpDecay
+    local GetVolume = Glide.Config.GetVolume
+
     function ENT:OnUpdateSounds()
         BaseClass.OnUpdateSounds( self )
 
@@ -103,8 +108,50 @@ if CLIENT then
         local hover = self:GetHoverValue()
 
         -- Do custom sounds while in hover mode
-        if hover > 0.05 then
-            -- TODO
+        if hover < 0.05 then
+            if sounds.hoverBass then
+                sounds.hoverBass:Stop()
+                sounds.hoverBass = nil
+            end
+
+            if sounds.hoverTreble then
+                sounds.hoverTreble:Stop()
+                sounds.hoverTreble = nil
+            end
+
+            return
+        end
+
+        local volume = GetVolume( "carVolume" ) * hover
+        local throttle = self:GetEngineThrottle()
+
+        if sounds.hoverBass then
+            sounds.hoverBass:ChangePitch( 30 + throttle * 20 )
+            sounds.hoverBass:ChangeVolume( volume * ( 0.3 + throttle * 0.4 ) )
+        else
+            local snd = self:CreateLoopingSound( "hoverBass", "glide/aircraft/thrust_b11.wav", 80, self )
+            snd:PlayEx( 0.0, 100 )
+        end
+
+        local targetPitch = ( throttle * 10 ) +
+            Clamp( self:GetVelocity():Length() / 45, 0, 40 )
+
+        local hoverPitch = ExpDecay( self.hoverPitch or 0, targetPitch, 5, FrameTime() )
+        self.hoverPitch = hoverPitch
+
+        if sounds.hoverTreble then
+            sounds.hoverTreble:ChangePitch( 70 + hoverPitch )
+            sounds.hoverTreble:ChangeVolume( volume * ( 0.6 + throttle * 0.2 ) )
+        else
+            local snd = self:CreateLoopingSound( "hoverTreble", "glide_experiments/deluxo/hover_high.wav", 80, self )
+            snd:PlayEx( 0.0, 100 )
+        end
+
+        if sounds.hoverEnergy then
+            sounds.hoverEnergy:ChangeVolume( volume * ( 0.5 + self:GetFlightValue() * 0.5 ) )
+        else
+            local snd = self:CreateLoopingSound( "hoverEnergy", "glide_experiments/deluxo/hover_energy.wav", 75, self )
+            snd:PlayEx( 0.0, 80 )
         end
     end
 
@@ -321,6 +368,7 @@ function ENT:SetHoverState( state )
         self:SetHoverValue( 1 )
         self:ChangeSuspensionLengthMultiplier( 0 )
         self:ResetSequence( "cover_retracted" )
+        self:SetBodygroup( 7, 1 )
 
     elseif state == 3 then
         -- Transition to ground mode
@@ -328,6 +376,7 @@ function ENT:SetHoverState( state )
         self:TurnOn()
         self:ResetSequence( "cover_extend" )
         self:ResetSequenceInfo()
+        self:SetBodygroup( 7, 0 )
 
     else
         -- Set to ground mode now
@@ -335,6 +384,7 @@ function ENT:SetHoverState( state )
         self:SetHoverValue( 0 )
         self:ChangeSuspensionLengthMultiplier( 1 )
         self:ResetSequence( "cover_extended" )
+        self:SetBodygroup( 7, 0 )
     end
 end
 
@@ -343,6 +393,10 @@ function ENT:ChangeSuspensionLengthMultiplier( multiplier )
 
     for _, w in Glide.EntityPairs( self.wheels ) do
         w.state.suspensionLengthMult = multiplier
+
+        if not self.wheelsEnabled then
+            w.state.angularVelocity = 0
+        end
     end
 
     local phys = self:GetPhysicsObject()
@@ -361,6 +415,7 @@ function ENT:TurnOn()
 end
 
 local Clamp = math.Clamp
+local ExpDecay = Glide.ExpDecay
 
 function ENT:OnPostThink( dt, selfTbl )
     BaseClass.OnPostThink( self, dt, selfTbl )
@@ -403,6 +458,8 @@ function ENT:OnPostThink( dt, selfTbl )
             -- point trace hitting a surface, then reduce the flight strength
             self:SetFlightValue( Clamp( flight - dt * 2, 0, 1 ) )
         end
+
+        self:SetEngineThrottle( ExpDecay( self:GetEngineThrottle(), self:GetInputFloat( 1, "accelerate" ), 8, dt ) )
     else
         self:SetFlightValue( Clamp( flight - dt, 0, 1 ) )
     end
@@ -545,7 +602,7 @@ function ENT:SimulateHovercraft( strength, flightStrength, phys, dt, outLin, out
 
     -- Pitch force
     local pitchInput = self:GetInputFloat( 1, "lean_pitch" )
-    pitchInput = LimitInputWithAngle( pitchInput, Abs( self:GetAngles()[1] ), 10 )
+    pitchInput = LimitInputWithAngle( pitchInput, Abs( self:GetAngles()[1] ), 5 )
     outAng[2] = outAng[2] + params.pitchForce * mass * pitchInput * flightStrength
 
     return contactHoverPointCount
