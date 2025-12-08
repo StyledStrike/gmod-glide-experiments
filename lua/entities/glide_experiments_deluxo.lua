@@ -12,6 +12,18 @@ ENT.UneditableNWVars = {
     SuspensionLength = true
 }
 
+-- This is needed to play sequences from the model
+ENT.AutomaticFrameAdvance = true
+
+DEFINE_BASECLASS( "base_glide_car" )
+
+function ENT:SetupDataTables()
+    BaseClass.SetupDataTables( self )
+
+    self:NetworkVar( "Float", "HoverState" )
+    self:NetworkVar( "Float", "HoverValue" )
+end
+
 function ENT:GetFirstPersonOffset( _, localEyePos )
     localEyePos[1] = localEyePos[1] + 15
     localEyePos[2] = localEyePos[2] - 2
@@ -84,6 +96,17 @@ if CLIENT then
         self.suspRR = self:LookupBone( "suspension_rr" )
     end
 
+    function ENT:OnUpdateSounds()
+        BaseClass.OnUpdateSounds( self )
+
+        local sounds = self.sounds
+
+        -- Do custom sounds while in hover mode
+        if self:GetHoverState() > 1 then
+            -- TODO
+        end
+    end
+
     local Lerp = Lerp
     local pos = Vector()
     local ang = Angle()
@@ -93,7 +116,7 @@ if CLIENT then
 
         if not self.steerLF then return end
 
-        local hover = 0.0 -- TODO
+        local hover = self:GetHoverValue()
         local invHover = 1 - hover
 
         -- Steer the front wheels
@@ -142,67 +165,394 @@ if CLIENT then
     end
 end
 
-if SERVER then
-    ENT.SpawnPositionOffset = Vector( 0, 0, 40 )
+-- Return early if this code is not running on the server.
+if not SERVER then return end
 
-    ENT.LightBodygroups = {
-        { type = "headlight", bodyGroupId = 18, subModelId = 1 }, -- Headlights
-        { type = "headlight", bodyGroupId = 19, subModelId = 1 }, -- Tail lights
-        { type = "brake", bodyGroupId = 20, subModelId = 1 },
-        { type = "reverse", bodyGroupId = 21, subModelId = 1 },
-        { type = "signal_left", bodyGroupId = 22, subModelId = 1 },
-        { type = "signal_right", bodyGroupId = 23, subModelId = 1 }
+ENT.SpawnPositionOffset = Vector( 0, 0, 40 )
+
+ENT.LightBodygroups = {
+    { type = "headlight", bodyGroupId = 18, subModelId = 1 }, -- Headlights
+    { type = "headlight", bodyGroupId = 19, subModelId = 1 }, -- Tail lights
+    { type = "brake", bodyGroupId = 20, subModelId = 1 },
+    { type = "reverse", bodyGroupId = 21, subModelId = 1 },
+    { type = "signal_left", bodyGroupId = 22, subModelId = 1 },
+    { type = "signal_right", bodyGroupId = 23, subModelId = 1 }
+}
+
+ENT.HoverTransitionTime = 0.9
+
+ENT.HoverParams = {
+    linearDrag = Vector( 0.2, 1.5, 2.0 ), -- (Forward, right, up)
+    angularDrag = Vector( -5, -15, -5 ), -- (Roll, pitch, yaw)
+
+    hoverForce = 10,         -- How strong is the hover force on each hover point?
+    hoverDistance = 100,     -- How far from surfaces each hover point has to be for the `hoverForce` to fully apply?
+    hoverZDrag = 0.03,       -- Extra upwards drag to apply on each hover point
+
+    maxSpeed = 1700,        -- Stop applying `engineForce` once the vehicle hits this speed
+    engineForce = 450,
+    turnForce = 900,
+    pitchForce = 700,
+    uprightForce = 600
+}
+
+function ENT:GetGears()
+    return {
+        [-1] = 2.5, -- Reverse
+        [0] = 0, -- Neutral
+        [1] = 2.8,
+        [2] = 1.7,
+        [3] = 1.2,
+        [4] = 0.9,
+        [5] = 0.75
+    }
+end
+
+function ENT:CreateFeatures()
+    self:SetCounterSteer( 0.3 )
+    self:SetSpringStrength( 450 )
+
+    self:SetSideTractionMultiplier( 15 )
+    self:SetSideTractionMin( 250 )
+    self:SetSideTractionMaxAng( 20 )
+
+    self:SetMaxRPM( 600 )
+    self:SetMaxRPM( 7500 )
+    self:SetDifferentialRatio( 0.6 )
+    self:SetMinRPMTorque( 4300 )
+    self:SetMaxRPMTorque( 4600 )
+
+    self:SetPowerDistribution( -0.6 )
+    self:SetForwardTractionMax( 2000 )
+    self:SetBrakePower( 2500 )
+
+    self:CreateSeat( Vector( -25, 20, -14 ), Angle( 0, 270, 5 ), Vector( 10, 80, 0 ), false )
+    self:CreateSeat( Vector( -18, -20, -11 ), Angle( 0, 270, 5 ), Vector( 10, -80, 0 ), false )
+
+    local params = {
+        model = "models/gta5/vehicles/jb700/wheel.mdl",
+        steerMultiplier = 1,
+        radius = 14
     }
 
-    function ENT:GetGears()
-        return {
-            [-1] = 2.5, -- Reverse
-            [0] = 0, -- Neutral
-            [1] = 2.8,
-            [2] = 1.7,
-            [3] = 1.2,
-            [4] = 0.9,
-            [5] = 0.75
-        }
+    self:CreateWheel( Vector( 53.4, 35, -1 ), params )
+    self:CreateWheel( Vector( 53.4, -35, -1 ), params )
+
+    params.radius = 16
+    params.steerMultiplier = nil
+
+    self:CreateWheel( Vector( -56.2, 35, -1 ), params )
+    self:CreateWheel( Vector( -56.2, -35, -1 ), params )
+
+    for _, w in ipairs( self.wheels ) do
+        Glide.HideEntity( w, true )
     end
 
-    function ENT:CreateFeatures()
-        self:SetCounterSteer( 0.3 )
-        self:SetSpringStrength( 450 )
+    -- Make holding the headlights input toggle hover mode
+    self:RegisterHoldAction( "headlights", 1.0, { name = "ToggleHoverMode" } )
 
-        self:SetSideTractionMultiplier( 15 )
-        self:SetSideTractionMin( 250 )
-        self:SetSideTractionMaxAng( 20 )
+    -- Setup hover mode variables and states
+    self:SetHoverState( 0 )
+    self:ChangeHoverState( 0 )
+    self.flightStrength = 0
+    self.contactHoverPointCount = 0
 
-        self:SetMaxRPM( 600 )
-        self:SetMaxRPM( 7500 )
-        self:SetDifferentialRatio( 0.6 )
-        self:SetMinRPMTorque( 4300 )
-        self:SetMaxRPMTorque( 4600 )
+    -- Calculate local positions on the vehicle where hover forces are applied
+    local phys = self:GetPhysicsObject()
+    if not IsValid( phys ) then return end
 
-        self:SetPowerDistribution( -0.6 )
-        self:SetForwardTractionMax( 2000 )
+    local center = phys:GetMassCenter()
+    local mins, maxs = phys:GetAABB()
+    local size = ( maxs - mins ) * 0.5
 
-        self:CreateSeat( Vector( -25, 20, -14 ), Angle( 0, 270, 5 ), Vector( 10, 80, 0 ), false )
-        self:CreateSeat( Vector( -18, -20, -11 ), Angle( 0, 270, 5 ), Vector( 10, -80, 0 ), false )
+    local spacingX = 0.8
+    local spacingY = 0.7
+    local offsetZ = 0
 
-        local params = {
-            model = "models/gta5/vehicles/jb700/wheel.mdl",
-            steerMultiplier = 1,
-            radius = 14
-        }
+    center[3] = -size[3] * 0.5
 
-        self:CreateWheel( Vector( 53.4, 35, -1 ), params )
-        self:CreateWheel( Vector( 53.4, -35, -1 ), params )
+    self.hoverPoints = {
+        center + Vector( size[1] * spacingX, size[2] * spacingY, offsetZ ), -- Front left
+        center + Vector( size[1] * spacingX, size[2] * -spacingY, offsetZ ), -- Front right
+        center + Vector( size[1] * -spacingX, size[2] * spacingY, offsetZ ), -- Rear left
+        center + Vector( size[1] * -spacingX, size[2] * -spacingY, offsetZ ) -- Rear right
+    }
+end
 
-        params.radius = 16
-        params.steerMultiplier = nil
+function ENT:OnHoldInputAction( _action, data )
+    if data.name ~= "ToggleHoverMode" then return end
 
-        self:CreateWheel( Vector( -56.2, 35, -1 ), params )
-        self:CreateWheel( Vector( -56.2, -35, -1 ), params )
+    local state = self:GetHoverState()
 
-        for _, w in ipairs( self.wheels ) do
-            Glide.HideEntity( w, true )
+    if state == 0 or state == 3 then
+        self:ChangeHoverState( 1 )
+    else
+        self:ChangeHoverState( 3 )
+    end
+end
+
+local stateSounds = {
+    [1] = { "glide_experiments/deluxo/transform_to_flight.wav", 80, 100, 0.9 },
+    [3] = { "glide_experiments/deluxo/transform_to_car.wav", 80, 100, 0.9 }
+}
+
+function ENT:ChangeHoverState( state )
+    -- Do transition sounds
+    if state ~= self:GetHoverState() then
+        local soundParams = stateSounds[state]
+
+        if soundParams then
+            self:EmitSound( unpack( soundParams ) )
         end
+    end
+
+    if state == 1 then
+        -- Transition to hover mode
+        self:SetHoverState( 1 )
+        self:TurnOff()
+        self:ResetSequence( self:LookupSequence( "wings_extend" ) )
+        self:ResetSequenceInfo()
+
+    elseif state == 2 then
+        -- Set to hover mode now
+        self:SetHoverState( 2 )
+        self:SetHoverValue( 1 )
+        self:ChangeSuspensionLengthMultiplier( 0 )
+        self:ResetSequence( "wings_extended" )
+
+    elseif state == 3 then
+        -- Transition to ground mode
+        self:SetHoverState( 3 )
+        self:TurnOn()
+        self:ResetSequence( self:LookupSequence( "wings_retract" ) )
+        self:ResetSequenceInfo()
+
+    else
+        -- Set to ground mode now
+        self:SetHoverState( 0 )
+        self:SetHoverValue( 0 )
+        self:ChangeSuspensionLengthMultiplier( 1 )
+        self:ResetSequence( "wings_retracted" )
+    end
+end
+
+function ENT:ChangeSuspensionLengthMultiplier( multiplier )
+    self.wheelsEnabled = multiplier > 0.05
+
+    for _, w in Glide.EntityPairs( self.wheels ) do
+        w.state.suspensionLengthMult = multiplier
+    end
+
+    local phys = self:GetPhysicsObject()
+
+    if IsValid( phys ) then
+        phys:Wake()
+    end
+end
+
+function ENT:TurnOn()
+    -- Don't allow turning on while in hover mode
+    local state = self:GetHoverState()
+    if state > 0 and state ~= 3 then return end
+
+    BaseClass.TurnOn( self )
+end
+
+local Clamp = math.Clamp
+
+function ENT:OnPostThink( dt, selfTbl )
+    BaseClass.OnPostThink( self, dt, selfTbl )
+
+    local state = self:GetHoverState()
+
+    if state == 1 then -- Is it changing to hover mode?
+        local value = self:GetHoverValue() + dt / selfTbl.HoverTransitionTime
+
+        if value > 1 then
+            self:ChangeHoverState( 2 )
+        else
+            self:SetHoverValue( value )
+            self:ChangeSuspensionLengthMultiplier( 1 - value )
+        end
+
+    elseif state == 3 then -- Is it changing to ground mode?
+        local value = self:GetHoverValue() - dt / selfTbl.HoverTransitionTime
+
+        if value < 0 then
+            self:ChangeHoverState( 0 )
+        else
+            self:SetHoverValue( value )
+            self:ChangeSuspensionLengthMultiplier( 1 - value )
+        end
+    end
+
+    if state > 1 then
+        local pitchInput = self:GetInputFloat( 1, "lean_pitch" )
+
+        -- If the user is trying to fly up...
+        if pitchInput < -0.1 then
+            -- Increase the flight strength
+            selfTbl.flightStrength = Clamp( selfTbl.flightStrength + dt, 0, 1 )
+
+        elseif selfTbl.contactHoverPointCount > 1 then
+            -- If no pitch up input, and we have at least one hover
+            -- point trace hitting a surface, then reduce the flight strength
+            selfTbl.flightStrength = Clamp( selfTbl.flightStrength - dt * 2, 0, 1 )
+        end
+    else
+        selfTbl.flightStrength = 0
+    end
+end
+
+local Abs = math.abs
+local TraceLine = util.TraceLine
+local GetGravity = physenv.GetGravity
+
+local function LimitInputWithAngle( value, ang, maxAng )
+    if ang > maxAng then
+        value = value * ( 1 - Clamp( ( ang - maxAng ) / 20, 0, 1 ) )
+    end
+
+    return value
+end
+
+local mass
+
+local function AddForce( out, f )
+    out[1] = out[1] + f[1] * mass
+    out[2] = out[2] + f[2] * mass
+    out[3] = out[3] + f[3] * mass
+end
+
+local linearImp, angularImp
+
+local function AddForceOffset( outLin, outAng, phys, dt, pos, f )
+    linearImp, angularImp = phys:CalculateForceOffset( f * mass, pos )
+
+    outLin[1] = outLin[1] + linearImp[1] / dt
+    outLin[2] = outLin[2] + linearImp[2] / dt
+    outLin[3] = outLin[3] + linearImp[3] / dt
+
+    outAng[1] = outAng[1] + angularImp[1] / dt
+    outAng[2] = outAng[2] + angularImp[2] / dt
+    outAng[3] = outAng[3] + angularImp[3] / dt
+end
+
+local ray = {}
+local traceData = { output = ray, endpos = Vector() }
+local fw, rt, up, vel, speed
+local WORLD_UP = Vector( 0, 0, 1 )
+
+function ENT:SimulateHovercraft( strength, flightStrength, phys, dt, outLin, outAng )
+    mass = phys:GetMass()
+    fw = self:GetForward()
+    rt = self:GetRight()
+    up = self:GetUp()
+
+    vel = phys:GetVelocity()
+    speed = self:WorldToLocal( phys:GetPos() + vel )[1]
+
+    local params = self.HoverParams
+
+    -- Hover forces
+    local hoverDist = params.hoverDistance
+    local hoverForce, upVel, avgNormal = 0, 0, Vector()
+    local contactHoverPointCount = 0
+
+    traceData.filter = self
+
+    for _, point in ipairs( self.hoverPoints ) do
+        point = self:LocalToWorld( point )
+
+        -- Check how far from a surface this point is
+        traceData.start = point
+        traceData.endpos[1] = point[1] - up[1] * hoverDist
+        traceData.endpos[2] = point[2] - up[2] * hoverDist
+        traceData.endpos[3] = point[3] - up[3] * hoverDist
+
+        TraceLine( traceData )
+
+        if ray.Hit then
+            upVel = up:Dot( phys:GetVelocityAtPoint( point ) )
+
+            hoverForce = params.hoverForce * ( 0.5 - ray.Fraction ) * strength
+            hoverForce = hoverForce - upVel * params.hoverZDrag
+
+            -- Don't push down if flightStrength is not 0
+            if hoverForce > 0 then
+                hoverForce = hoverForce * ( 1 - flightStrength )
+            end
+
+            AddForceOffset( outLin, outAng, phys, dt, point, up * hoverForce )
+
+            avgNormal[1] = avgNormal[1] + ray.HitNormal[1]
+            avgNormal[2] = avgNormal[2] + ray.HitNormal[2]
+            avgNormal[3] = avgNormal[3] + ray.HitNormal[3]
+
+            contactHoverPointCount = contactHoverPointCount + 1
+        else
+            avgNormal[3] = avgNormal[3] + 1
+        end
+    end
+
+    local count = #self.hoverPoints
+
+    avgNormal[1] = avgNormal[1] / count
+    avgNormal[2] = avgNormal[2] / count
+    avgNormal[3] = avgNormal[3] / count
+    avgNormal:Normalize()
+
+    -- Lift & keep upright forces
+    AddForce( outLin, -flightStrength * GetGravity()[3] * WORLD_UP )
+
+    outAng[1] = outAng[1] + rt:Dot( avgNormal ) * params.uprightForce * strength * mass
+    outAng[2] = outAng[2] + fw:Dot( avgNormal ) * params.uprightForce * strength * mass
+
+    -- Drag forces
+    AddForce( outLin, Clamp( speed, -500, 500 ) * -params.linearDrag[1] * strength * fw )
+    AddForce( outLin, rt:Dot( vel ) * -params.linearDrag[2] * strength * rt )
+    AddForce( outLin, up:Dot( vel ) * -params.linearDrag[3] * strength * flightStrength * up )
+
+    local angDrag = params.angularDrag
+    local angVel = phys:GetAngleVelocity()
+
+    outAng[1] = outAng[1] + angVel[1] * angDrag[1] * mass * strength
+    outAng[2] = outAng[2] + angVel[2] * angDrag[2] * mass * strength
+    outAng[3] = outAng[3] + angVel[3] * angDrag[3] * mass * strength
+
+    -- Engine force
+    local throttle = self:GetInputFloat( 1, "accelerate" ) - self:GetInputFloat( 1, "brake" )
+
+    if throttle > 0 and speed < params.maxSpeed then
+        AddForce( outLin, params.engineForce * throttle * strength * fw )
+
+    elseif throttle < 0 and speed > params.maxSpeed * -0.25 then
+        AddForce( outLin, params.engineForce * throttle * strength * fw )
+    end
+
+    -- Steering force
+    local steer = self:GetInputFloat( 1, "steer" )
+
+    if speed < -100 then
+        steer = -steer
+    end
+
+    outAng[3] = outAng[3] - params.turnForce * steer * mass * strength
+
+    -- Pitch force
+    local pitchInput = self:GetInputFloat( 1, "lean_pitch" )
+    pitchInput = LimitInputWithAngle( pitchInput, Abs( self:GetAngles()[1] ), 10 )
+    outAng[2] = outAng[2] + params.pitchForce * mass * pitchInput * flightStrength
+
+    return contactHoverPointCount
+end
+
+function ENT:OnSimulatePhysics( phys, dt, outLin, outAng )
+    if self:IsPlayerHolding() then return end
+
+    local strength = self:GetHoverValue()
+
+    if strength > 0.05 then
+        self.contactHoverPointCount = self:SimulateHovercraft( strength, self.flightStrength, phys, dt, outLin, outAng )
     end
 end
