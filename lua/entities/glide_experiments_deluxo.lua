@@ -505,7 +505,7 @@ local function AddForceOffset( outLin, outAng, phys, dt, pos, f )
 end
 
 local ray = {}
-local traceData = { output = ray, endpos = Vector(), mask = MASK_NPCSOLID + MASK_WATER }
+local traceData = { output = ray, endpos = Vector(), mask = MASK_SOLID + CONTENTS_WATER + CONTENTS_SLIME }
 local fw, rt, up, vel, speed
 local WORLD_UP = Vector( 0, 0, 1 )
 
