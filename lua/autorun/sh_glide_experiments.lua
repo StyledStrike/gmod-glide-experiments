@@ -7,10 +7,9 @@ if CLIENT then
     list.Set( "GlideProjectileModels", "models/glide_experiments/weapons/firework_rocket.mdl", { scale = 1.5 } )
 end
 
---[[ TODO: get workshop ID after publishing
 if SERVER then
-    resource.AddWorkshop( 99999 )
-end]]
+    resource.AddWorkshop( 3620516732 )
+end
 
 hook.Add( "InitPostEntity", "GlideExperiments.GlideCheck", function()
     if Glide then
