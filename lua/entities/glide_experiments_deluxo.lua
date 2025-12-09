@@ -150,7 +150,7 @@ if CLIENT then
         if sounds.hoverEnergy then
             sounds.hoverEnergy:ChangeVolume( volume * ( 0.5 + self:GetFlightValue() * 0.5 ) )
         else
-            local snd = self:CreateLoopingSound( "hoverEnergy", "glide_experiments/deluxo/hover_energy.wav", 75, self )
+            local snd = self:CreateLoopingSound( "hoverEnergy", ")glide_experiments/deluxo/hover_energy.wav", 75, self )
             snd:PlayEx( 0.0, 80 )
         end
     end
@@ -505,7 +505,7 @@ local function AddForceOffset( outLin, outAng, phys, dt, pos, f )
 end
 
 local ray = {}
-local traceData = { output = ray, endpos = Vector() }
+local traceData = { output = ray, endpos = Vector(), mask = MASK_NPCSOLID + MASK_WATER }
 local fw, rt, up, vel, speed
 local WORLD_UP = Vector( 0, 0, 1 )
 
