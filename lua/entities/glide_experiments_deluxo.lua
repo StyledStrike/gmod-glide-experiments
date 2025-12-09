@@ -397,6 +397,8 @@ function ENT:ChangeSuspensionLengthMultiplier( multiplier )
 
         if not self.wheelsEnabled then
             w.state.angularVelocity = 0
+            w:SetForwardSlip( 0 )
+            w:SetSideSlip( 0 )
         end
     end
 

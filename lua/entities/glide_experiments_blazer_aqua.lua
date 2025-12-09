@@ -318,6 +318,12 @@ if SERVER then
 
         for _, w in EntityPairs( self.wheels ) do
             w.state.suspensionLengthMult = multiplier
+
+            if not self.wheelsEnabled then
+                w.state.angularVelocity = 0
+                w:SetForwardSlip( 0 )
+                w:SetSideSlip( 0 )
+            end
         end
 
         local phys = self:GetPhysicsObject()
