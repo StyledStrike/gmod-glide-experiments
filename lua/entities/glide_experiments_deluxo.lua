@@ -332,6 +332,7 @@ end
 
 function ENT:OnHoldInputAction( _action, data )
     if data.name ~= "ToggleHoverMode" then return end
+    if self:GetEngineHealth() <= 0 then return end
 
     if self.hoverState == 0 or self.hoverState == 3 then
         self:SetHoverState( 1 )
@@ -445,7 +446,7 @@ function ENT:OnPostThink( dt, selfTbl )
 
     local flight = self:GetFlightValue()
 
-    if state > 1 then
+    if state == 2 then
         local pitchInput = self:GetInputFloat( 1, "lean_pitch" )
 
         -- If the user is trying to fly up...
@@ -460,6 +461,10 @@ function ENT:OnPostThink( dt, selfTbl )
         end
 
         self:SetEngineThrottle( ExpDecay( self:GetEngineThrottle(), self:GetInputFloat( 1, "accelerate" ), 8, dt ) )
+
+        if self:GetEngineHealth() <= 0 then
+            self:SetHoverState( 3 )
+        end
     else
         self:SetFlightValue( Clamp( flight - dt, 0, 1 ) )
     end
