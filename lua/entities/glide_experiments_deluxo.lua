@@ -197,10 +197,10 @@ if CLIENT then
         pos[1] = Lerp( hover, 5 + self:GetWheelOffset( 2 ), -1 )
         self:ManipulateBonePosition( self.suspRF, pos )
 
-        pos[1] = Lerp( hover, 5 + self:GetWheelOffset( 3 ), -1 )
+        pos[1] = Lerp( hover, 3 + self:GetWheelOffset( 3 ), -1 )
         self:ManipulateBonePosition( self.suspLR, pos )
 
-        pos[1] = Lerp( hover, 5 + self:GetWheelOffset( 4 ), -1 )
+        pos[1] = Lerp( hover, 3 + self:GetWheelOffset( 4 ), -1 )
         self:ManipulateBonePosition( self.suspRR, pos )
 
         ang[1] = Lerp( hover, 0, 30 )

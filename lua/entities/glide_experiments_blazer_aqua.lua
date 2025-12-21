@@ -125,6 +125,8 @@ if CLIENT then
 
     local Lerp = Lerp
     local Clamp = math.Clamp
+
+    local pos = Vector()
     local ang = Angle()
 
     function ENT:OnUpdateAnimations()
@@ -167,6 +169,12 @@ if CLIENT then
 
         ang[1] = Lerp( deploy, -50, -10 + Clamp( self:GetWheelOffset( 4 ) / -10, 0, 1 ) * 30 )
         self:ManipulateBoneAngles( self.suspRR, ang )
+
+        pos[1] = Lerp( deploy, 1, -2 )
+        self:ManipulateBonePosition( self.suspLF, pos )
+        self:ManipulateBonePosition( self.suspRF, pos )
+        self:ManipulateBonePosition( self.suspLR, pos )
+        self:ManipulateBonePosition( self.suspRR, pos )
     end
 end
 
@@ -216,7 +224,7 @@ if SERVER then
         self.engineBrakeTorque = 3000
         self.switchBaseDelay = 0.45
 
-        self:SetSuspensionLength( 8 )
+        self:SetSuspensionLength( 7 )
         self:SetSpringStrength( 320 )
         self:SetSpringDamper( 2000 )
 
