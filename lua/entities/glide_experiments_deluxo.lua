@@ -303,7 +303,7 @@ function ENT:CreateFeatures()
     end
 
     -- Make holding the headlights input toggle hover mode
-    self:RegisterHoldAction( "headlights", 1.0, { name = "ToggleHoverMode" } )
+    self:RegisterHoldAction( "headlights", 0.5, { name = "ToggleHoverMode" } )
 
     -- Setup hover mode variables and states
     self.hoverState = 0
