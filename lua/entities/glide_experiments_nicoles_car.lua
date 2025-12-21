@@ -54,13 +54,9 @@ if CLIENT then
 
     ENT.ExhaustPopSound = "GlideExperiments.Rotary.ExhaustPop"
 
-    ENT.TurboLoopSound = ""
     ENT.TurboBlowoffSound = "GlideExperiments.Rotary.DumpValve"
     ENT.TurboBlowoffVolume = 1.0
     ENT.TurboPitch = 100
-
-    ENT.ExternalGearSwitchSound = ""
-    ENT.InternalGearSwitchSound = ""
 
     function ENT:OnCreateEngineStream( stream )
         stream.offset = Vector( 10, 0, 0 )
