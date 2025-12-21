@@ -1,0 +1,10 @@
+"VertexlitGeneric"
+{
+    "$basetexture" "models/glide_experiments/nicoles_car/glass"
+    "$envmap" "env_cubemap"
+
+    "$nodecal" "1"
+    "$translucent" "1"
+    "$blendtintbybasealpha" "0"
+    "$allowdiffusemodulation" "false"
+}

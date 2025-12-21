@@ -1,0 +1,13 @@
+"VertexlitGeneric"
+{
+	"$basetexture" "models/glide_experiments/nicoles_car/body"
+	"$allowdiffusemodulation" "false"
+
+	$emissiveBlendEnabled "1"
+	$emissiveBlendStrength "1"
+	$emissiveBlendTexture "vgui/white"
+	$emissiveBlendBaseTexture "models/glide_experiments/nicoles_car/body"
+	$emissiveBlendFlowTexture "vgui/white"
+	$emissiveBlendTint "[ 0.8 0.8 0.8 ]"
+	$emissiveBlendScrollVector "[ 0 0 ]"
+}

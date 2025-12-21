@@ -1,0 +1,8 @@
+"VertexlitGeneric"
+{
+    "$basetexture" "models/glide_experiments/nicoles_car/body"
+    "$bumpmap" "models/glide_experiments/nicoles_car/body_n"
+
+    "$blendtintbybasealpha" "0"
+    "$allowdiffusemodulation" "false"
+}
