@@ -133,14 +133,18 @@ if CLIENT then
             snd:PlayEx( 0.0, 100 )
         end
 
+        local dt = FrameTime()
         local targetPitch = ( throttle * 10 ) +
-            Clamp( self:GetVelocity():Length() / 45, 0, 40 )
+            Clamp( self:GetVelocity():Length() / 50, 0, 30 )
 
-        local hoverPitch = ExpDecay( self.hoverPitch or 0, targetPitch, 5, FrameTime() )
+        local hoverPitch = ExpDecay( self.hoverPitch or 0, targetPitch, 5, dt )
+        local hoverExtraPitch = ExpDecay( self.hoverExtraPitch or 0, throttle, throttle > 0.2 and 0.2 or 5, dt )
+
         self.hoverPitch = hoverPitch
+        self.hoverExtraPitch = hoverExtraPitch
 
         if sounds.hoverTreble then
-            sounds.hoverTreble:ChangePitch( 70 + hoverPitch )
+            sounds.hoverTreble:ChangePitch( 70 + hoverPitch + ( 20 * hoverExtraPitch ) )
             sounds.hoverTreble:ChangeVolume( volume * ( 0.6 + throttle * 0.2 ) )
         else
             local snd = self:CreateLoopingSound( "hoverTreble", "glide_experiments/deluxo/hover_high.wav", 80, self )
@@ -148,9 +152,9 @@ if CLIENT then
         end
 
         if sounds.hoverEnergy then
-            sounds.hoverEnergy:ChangeVolume( volume * ( 0.5 + self:GetFlightValue() * 0.5 ) )
+            sounds.hoverEnergy:ChangeVolume( volume * ( 0.5 + self:GetFlightValue() ) )
         else
-            local snd = self:CreateLoopingSound( "hoverEnergy", ")glide_experiments/deluxo/hover_energy.wav", 75, self )
+            local snd = self:CreateLoopingSound( "hoverEnergy", ")glide_experiments/deluxo/hover_energy.wav", 80, self )
             snd:PlayEx( 0.0, 80 )
         end
     end
