@@ -179,6 +179,12 @@ if SERVER then
     ENT.UnflipForce = 20
     ENT.BurnoutForce = 30
 
+    function ENT:InitializePhysics()
+        self:SetSolid( SOLID_VPHYSICS )
+        self:SetMoveType( MOVETYPE_VPHYSICS )
+        self:PhysicsInit( SOLID_VPHYSICS, Vector( 0, 0, -23 ) )
+    end
+
     function ENT:GetGears()
         return {
             [-1] = 3.0,
@@ -235,7 +241,6 @@ if SERVER then
             modelScale = Vector( 0.5, 1, 1 ),
             modelAngle = Angle( 0, 90, 0 ),
             steerMultiplier = 1,
-            enableAxleForces = true
         } )
 
         self:CreateWheel( Vector( 25, -18, -4 ), {
@@ -243,21 +248,18 @@ if SERVER then
             modelAngle = Angle( 0, -90, 0 ),
             modelScale = Vector( 0.5, 1, 1 ),
             steerMultiplier = 1,
-            enableAxleForces = true
         } )
 
         self:CreateWheel( Vector( -27, 18, -4 ), {
             model = "models/gta5/vehicles/blazer/wheel.mdl",
             modelScale = Vector( 0.5, 1, 1 ),
             modelAngle = Angle( 0, 90, 0 ),
-            enableAxleForces = true
         } )
 
         self:CreateWheel( Vector( -27, -18, -4 ), {
             model = "models/gta5/vehicles/blazer/wheel.mdl",
             modelAngle = Angle( 0, -90, 0 ),
             modelScale = Vector( 0.5, 1, 1 ),
-            enableAxleForces = true
         } )
 
         self:ChangeWheelRadius( 16 )
