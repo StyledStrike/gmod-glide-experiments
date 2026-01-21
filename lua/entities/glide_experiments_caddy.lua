@@ -99,6 +99,7 @@ end
 
 if SERVER then
     ENT.SpawnPositionOffset = Vector( 0, 0, 40 )
+    ENT.StartupTime = 0.1
     ENT.ChassisMass = 400
     ENT.AirControlForce = Vector( 1, 0.5, 0.2 )
 
