@@ -187,6 +187,7 @@ if SERVER then
     ENT.FallWhileUnderWater = true
     ENT.SpawnPositionOffset = Vector( 0, 0, 40 )
 
+    ENT.SuspensionLandFromFall = "Glide.OnLand.Bike"
     ENT.SuspensionHeavySound = "Glide.Suspension.CompressBike"
     ENT.StartupTime = 0.5
 

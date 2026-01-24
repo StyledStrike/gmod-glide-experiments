@@ -102,6 +102,7 @@ if SERVER then
     ENT.StartupTime = 0.1
     ENT.ChassisMass = 400
     ENT.AirControlForce = Vector( 1, 0.5, 0.2 )
+    ENT.SuspensionLandFromFall = "Glide.OnLand.Bike"
 
     function ENT:GetGears()
         return {
