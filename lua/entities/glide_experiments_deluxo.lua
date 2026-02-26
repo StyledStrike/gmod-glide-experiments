@@ -467,7 +467,8 @@ function ENT:OnPostThink( dt, selfTbl )
             self:SetFlightValue( Clamp( flight - dt * 2, 0, 1 ) )
         end
 
-        self:SetEngineThrottle( ExpDecay( self:GetEngineThrottle(), self:GetInputFloat( 1, "accelerate" ), 8, dt ) )
+        local throttleInput = self:GetEngineState() < 2 and self:GetInputFloat( 1, "accelerate" ) or 0
+        self:SetEngineThrottle( ExpDecay( self:GetEngineThrottle(), throttleInput, 8, dt ) )
 
         if self:GetEngineHealth() <= 0 then
             self:SetHoverState( 3 )
