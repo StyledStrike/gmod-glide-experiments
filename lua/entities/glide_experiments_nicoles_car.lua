@@ -110,8 +110,8 @@ function ENT:CreateFeatures()
 
     self:SetForwardTractionMax( 3000 )
     self:SetSideTractionMultiplier( 15 )
-    self:SetSideTractionMin( 250 )
-    self:SetSideTractionMaxAng( 20 )
+    self:SetSideTractionMin( 150 )
+    self:SetSideTractionMaxAng( 10 )
 
     self:SetDifferentialRatio( 0.57 )
     self:SetPowerDistribution( -0.7 )

@@ -230,9 +230,9 @@ if SERVER then
 
         self:SetForwardTractionMax( 3200 )
         self:SetSideTractionMultiplier( 20 )
-        self:SetSideTractionMaxAng( 25 )
+        self:SetSideTractionMaxAng( 15 )
         self:SetSideTractionMax( 3500 )
-        self:SetSideTractionMin( 500 )
+        self:SetSideTractionMin( 200 )
 
         self:CreateSeat( Vector( -22, 0, 4 ), Angle( 0, 270, -16 ), Vector( 0, 60, 0 ), true )
 

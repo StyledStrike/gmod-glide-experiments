@@ -245,7 +245,7 @@ if SERVER then
 
         self:SetForwardTractionMax( 2400 )
         self:SetSideTractionMultiplier( 18 )
-        self:SetSideTractionMaxAng( 20 )
+        self:SetSideTractionMaxAng( 10 )
         self:SetSideTractionMax( 3500 )
         self:SetSideTractionMin( 500 )
 

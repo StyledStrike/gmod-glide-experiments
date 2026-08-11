@@ -132,8 +132,9 @@ if SERVER then
 
         self:SetForwardTractionMax( 1500 )
         self:SetSideTractionMultiplier( 10 )
+        self:SetSideTractionMaxAng( 10 )
         self:SetSideTractionMax( 1000 )
-        self:SetSideTractionMin( 500 )
+        self:SetSideTractionMin( 300 )
 
         self:SetSuspensionLength( 6 )
         self:SetSpringStrength( 300 )

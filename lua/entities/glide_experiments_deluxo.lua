@@ -266,9 +266,9 @@ function ENT:CreateFeatures()
     self:SetCounterSteer( 0.3 )
     self:SetSpringStrength( 450 )
 
-    self:SetSideTractionMultiplier( 15 )
-    self:SetSideTractionMin( 250 )
-    self:SetSideTractionMaxAng( 20 )
+    self:SetSideTractionMultiplier( 12 )
+    self:SetSideTractionMin( 300 )
+    self:SetSideTractionMaxAng( 10 )
 
     self:SetMaxRPM( 600 )
     self:SetMaxRPM( 7500 )

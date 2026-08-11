@@ -202,6 +202,7 @@ if SERVER then
         self:SetSpringDamper( 250 )
 
         self:SetSideTractionMultiplier( 10 )
+        self:SetSideTractionMaxAng( 15 )
         self:SetSideTractionMax( 1300 )
         self:SetSideTractionMin( 300 )
 
